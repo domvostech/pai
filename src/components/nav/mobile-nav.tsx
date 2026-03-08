@@ -13,7 +13,7 @@ const links = [
 export default function MobileNav({ className }: { className?: string }) {
   const pathname = usePathname()
   return (
-    <nav className={cn('flex border-b bg-white', className)}>
+    <nav className={cn('flex border-t bg-white fixed bottom-0 left-0 right-0 z-50', className)}>
       {links.map(({ href, label, icon: Icon }) => (
         <Link key={href} href={href}
           className={cn(
