@@ -65,7 +65,11 @@ export async function GET(
       const { data } = await supabase.storage.from('receipts').download(expense.receipt_path)
       if (data) {
         const buffer = new Uint8Array(await data.arrayBuffer())
-        const mimeType = expense.receipt_path.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg'
+        const mimeType = expense.receipt_path.endsWith('.pdf')
+          ? 'application/pdf'
+          : expense.receipt_path.endsWith('.png')
+            ? 'image/png'
+            : 'image/jpeg'
         receiptBuffers.push({ path: expense.receipt_path, buffer, mimeType })
       }
     }
