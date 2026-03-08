@@ -25,9 +25,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
+  // Only allow known safe fields — prevent user_id/id tampering
+  const allowedFields: Record<string, unknown> = {}
+  if (body.name !== undefined) allowedFields.name = body.name
+  if (body.total_budget !== undefined) allowedFields.total_budget = body.total_budget
+  if (body.client_id !== undefined) allowedFields.client_id = body.client_id
+
+  if (Object.keys(allowedFields).length === 0) {
+    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+  }
+
   const { data, error } = await supabase
     .from('projects')
-    .update(body)
+    .update(allowedFields)
     .eq('id', id)
     .eq('user_id', user.id)
     .select()

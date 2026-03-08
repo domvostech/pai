@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { calculateBudgetSummary } from '@/lib/budget'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import NewProjectButton from '@/components/projects/new-project-button'
@@ -15,6 +16,9 @@ interface ProjectWithRelations extends Project {
 
 export default async function DashboardPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
   const { data } = await supabase
     .from('projects')
     .select('*, client:clients(name), expenses(amount, is_return, category)')
