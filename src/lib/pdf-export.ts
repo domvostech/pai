@@ -127,7 +127,7 @@ export async function generateExpenseReportPdf({
 
   if (summary.isOverBudget) {
     drawText(
-      `⚠ This project is over budget by ${formatCurrency(Math.abs(summary.remaining))}`,
+      `WARNING: This project is over budget by ${formatCurrency(Math.abs(summary.remaining))}`,
       margin,
       y,
       { size: 9, color: [0.8, 0, 0] }

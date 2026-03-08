@@ -35,8 +35,15 @@ export async function POST(request: Request) {
   const body = await request.json()
   const { project_id, vendor, amount, date, category, notes, receipt_path, is_return, ocr_confidence } = body
 
-  if (!amount || !date || !category) {
-    return NextResponse.json({ error: 'amount, date, and category are required' }, { status: 400 })
+  const parsedAmount = Number(amount)
+  if (amount === undefined || amount === null || isNaN(parsedAmount) || parsedAmount <= 0) {
+    return NextResponse.json({ error: 'amount must be a positive number' }, { status: 400 })
+  }
+  if (!date) {
+    return NextResponse.json({ error: 'date is required' }, { status: 400 })
+  }
+  if (!['general', 'transport'].includes(category)) {
+    return NextResponse.json({ error: 'category must be general or transport' }, { status: 400 })
   }
 
   const { data, error } = await supabase
@@ -45,7 +52,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       project_id: project_id || null,
       vendor: vendor || null,
-      amount: Number(amount),
+      amount: parsedAmount,
       date,
       category,
       notes: notes || null,

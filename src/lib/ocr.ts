@@ -77,15 +77,16 @@ export async function extractReceiptData(
           data: input.imageBase64,
         },
       },
-      { type: 'text', text: OCR_SYSTEM_PROMPT },
+      { type: 'text', text: 'Extract receipt information from this image.' },
     ]
   } else {
-    content = [{ type: 'text', text: `${OCR_SYSTEM_PROMPT}\n\nReceipt text:\n${input.text}` }]
+    content = [{ type: 'text', text: `Receipt text:\n${input.text}` }]
   }
 
   const response = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 512,
+    system: OCR_SYSTEM_PROMPT,
     messages: [{ role: 'user', content }],
   })
 

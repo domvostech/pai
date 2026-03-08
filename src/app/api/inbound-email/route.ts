@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { extractTokenFromEmail, hasUsableContent } from '@/lib/email-parser'
@@ -9,7 +10,14 @@ const INBOUND_DOMAIN = process.env.INBOUND_EMAIL_DOMAIN ?? 'mail.yourapp.com'
 export async function POST(request: Request) {
   // Verify webhook secret
   const secret = request.headers.get('x-webhook-secret')
-  if (!secret || secret !== process.env.POSTMARK_WEBHOOK_SECRET) {
+  const expectedSecret = process.env.POSTMARK_WEBHOOK_SECRET ?? ''
+  const secretBuffer = Buffer.from(secret ?? '')
+  const expectedBuffer = Buffer.from(expectedSecret)
+  const secretsMatch = secret !== null &&
+    expectedSecret.length > 0 &&
+    secretBuffer.length === expectedBuffer.length &&
+    crypto.timingSafeEqual(secretBuffer, expectedBuffer)
+  if (!secretsMatch) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -51,15 +59,19 @@ export async function POST(request: Request) {
 
   if (!hasContent) {
     // No usable content — create a flagged inbox entry
-    await supabase.from('expenses').insert({
+    const { error: insertError1 } = await supabase.from('expenses').insert({
       user_id: userId,
       project_id: null,
       vendor: `No relevant information found (from: ${fromAddress})`,
-      amount: 1, // Minimum valid amount — user can edit
+      amount: 1,
       date: today,
       category: 'general',
       notes: 'Email received but no receipt data could be extracted.',
     })
+    if (insertError1) {
+      console.error('Failed to create inbox entry:', insertError1.message)
+      return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
+    }
     return NextResponse.json({ ok: true })
   }
 
@@ -96,17 +108,21 @@ export async function POST(request: Request) {
   }
 
   // Insert inbox expense (project_id = null)
-  await supabase.from('expenses').insert({
+  const { error: insertError2 } = await supabase.from('expenses').insert({
     user_id: userId,
     project_id: null,
     vendor: ocrResult?.vendor ?? `Email from ${fromAddress}`,
-    amount: ocrResult?.amount ?? 1, // Minimum valid amount — user can edit
+    amount: ocrResult?.amount ?? 1,
     date: ocrResult?.date ?? today,
     category: ocrResult?.category ?? 'general',
     notes: ocrResult?.notes ?? null,
     receipt_path: receiptPath,
     ocr_confidence: ocrResult?.confidence ?? null,
   })
+  if (insertError2) {
+    console.error('Failed to create inbox expense:', insertError2.message)
+    return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }
