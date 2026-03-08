@@ -7,6 +7,9 @@ export type Json =
   | Json[]
 
 export type Database = {
+  __InternalSupabase: {
+    PostgrestVersion: '12'
+  }
   public: {
     Tables: {
       clients: {
@@ -31,6 +34,7 @@ export type Database = {
           email?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       projects: {
         Row: {
@@ -57,6 +61,15 @@ export type Database = {
           total_budget?: number
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: 'projects_client_id_fkey'
+            columns: ['client_id']
+            isOneToOne: false
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
+          }
+        ]
       }
       expenses: {
         Row: {
@@ -101,6 +114,15 @@ export type Database = {
           ocr_confidence?: Json | null
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: 'expenses_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          }
+        ]
       }
       inbound_tokens: {
         Row: {
@@ -121,6 +143,7 @@ export type Database = {
           token?: string
           created_at?: string
         }
+        Relationships: []
       }
     }
     Views: Record<string, never>
