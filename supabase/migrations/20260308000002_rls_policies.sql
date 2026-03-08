@@ -26,3 +26,4 @@ create policy "expenses_delete" on public.expenses for delete using (auth.uid() 
 create policy "tokens_select" on public.inbound_tokens for select using (auth.uid() = user_id);
 create policy "tokens_insert" on public.inbound_tokens for insert with check (auth.uid() = user_id);
 create policy "tokens_delete" on public.inbound_tokens for delete using (auth.uid() = user_id);
+create policy "tokens_update" on public.inbound_tokens for update using (auth.uid() = user_id);
