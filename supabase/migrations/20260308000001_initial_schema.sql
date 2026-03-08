@@ -16,7 +16,7 @@ create table public.projects (
   user_id uuid not null references auth.users(id) on delete cascade,
   client_id uuid references public.clients(id) on delete set null,
   name text not null,
-  total_budget numeric(12,2) not null default 0,
+  total_budget numeric(12,2) not null default 0 check (total_budget >= 0),
   created_at timestamptz not null default now()
 );
 
@@ -29,7 +29,7 @@ create table public.expenses (
   project_id uuid references public.projects(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
   vendor text,
-  amount numeric(12,2) not null default 0,
+  amount numeric(12,2) not null default 0 check (amount > 0),
   date date not null default current_date,
   category expense_category not null default 'general',
   notes text,
@@ -46,3 +46,9 @@ create table public.inbound_tokens (
   token text not null unique default encode(gen_random_bytes(12), 'hex'),
   created_at timestamptz not null default now()
 );
+
+-- Indexes for common query patterns
+create index expenses_user_id_idx on public.expenses(user_id);
+create index expenses_project_id_idx on public.expenses(project_id);
+create index projects_user_id_idx on public.projects(user_id);
+create index clients_user_id_idx on public.clients(user_id);

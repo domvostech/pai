@@ -10,3 +10,6 @@ create policy "receipts_select" on storage.objects for select
 
 create policy "receipts_delete" on storage.objects for delete
   using (bucket_id = 'receipts' and auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "receipts_update" on storage.objects for update
+  using (bucket_id = 'receipts' and auth.uid()::text = (storage.foldername(name))[1]);
