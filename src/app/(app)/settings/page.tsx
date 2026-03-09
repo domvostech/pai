@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SettingsClient from '@/components/settings/settings-client'
@@ -15,9 +16,10 @@ export default async function SettingsPage() {
     .single()
 
   if (!tokenRow) {
+    const token = crypto.randomBytes(12).toString('hex')
     const { data: newRow } = await supabase
       .from('inbound_tokens')
-      .insert({ user_id: user.id })
+      .insert({ user_id: user.id, token })
       .select('token')
       .single()
     tokenRow = newRow
