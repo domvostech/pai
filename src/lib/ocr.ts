@@ -63,7 +63,11 @@ Return ONLY the JSON object, no other text.`
 function getClient(): OpenAI {
   return new OpenAI({
     baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPENROUTER_API_KEY ?? '',
+    apiKey: (() => {
+      const key = process.env.OPENROUTER_API_KEY
+      if (!key) throw new Error('OPENROUTER_API_KEY environment variable is not set')
+      return key
+    })(),
   })
 }
 
@@ -94,6 +98,6 @@ export async function extractReceiptData(
   })
 
   const text = response.choices[0]?.message?.content
-  if (!text) throw new Error('OpenRouter OCR returned empty response')
+  if (!text?.trim()) throw new Error('OpenRouter OCR returned empty response')
   return parseOcrResponse(text)
 }
