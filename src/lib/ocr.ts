@@ -81,6 +81,14 @@ export async function extractReceiptData(
   }
 
   const result = await model.generateContent(parts)
-  const text = result.response.text()
+  let text: string
+  try {
+    text = result.response.text()
+  } catch (err) {
+    throw new Error(`Gemini OCR blocked or failed: ${err instanceof Error ? err.message : String(err)}`)
+  }
+  if (!text) {
+    throw new Error('Gemini OCR returned empty response')
+  }
   return parseOcrResponse(text)
 }
