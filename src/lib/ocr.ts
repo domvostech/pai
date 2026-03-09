@@ -14,7 +14,9 @@ export interface OcrResult {
 
 export function parseOcrResponse(raw: string): OcrResult {
   try {
-    const parsed = JSON.parse(raw)
+    // Strip markdown code fences that LLMs often wrap JSON in (```json...``` or ```...```)
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+    const parsed = JSON.parse(cleaned)
     const confidence: Record<string, number> = parsed.confidence ?? {}
     const lowConfidenceFields = Object.entries(confidence)
       .filter(([, score]) => score < CONFIDENCE_THRESHOLD)
@@ -42,13 +44,16 @@ export function parseOcrResponse(raw: string): OcrResult {
   }
 }
 
-const OCR_SYSTEM_PROMPT = `You are a receipt parser. Extract information from the receipt and return ONLY valid JSON with this exact structure:
+const OCR_SYSTEM_PROMPT = `You are a receipt parser. Receipts may be in any language, including German.
+Extract the following fields and return ONLY a valid JSON object — no markdown, no code fences, no explanation, just the raw JSON.
+
+Required JSON structure:
 {
   "vendor": "store or vendor name",
   "amount": 0.00,
   "date": "YYYY-MM-DD",
-  "category": "general or transport",
-  "notes": "any relevant notes or null",
+  "category": "general",
+  "notes": null,
   "confidence": {
     "vendor": 0.0,
     "amount": 0.0,
@@ -56,9 +61,17 @@ const OCR_SYSTEM_PROMPT = `You are a receipt parser. Extract information from th
     "category": 0.0
   }
 }
-Category is "transport" only if the receipt is clearly for transportation (taxi, rideshare, fuel, train, bus, parking, toll). Otherwise use "general".
-If a field cannot be determined, use null for the value and 0.0 for its confidence score.
-Return ONLY the JSON object, no other text.`
+
+Rules:
+- "vendor": the store or company name printed at the top of the receipt
+- "amount": the final total paid as a decimal number (e.g. 13.00). Use the "Summe", "Total", "Betrag", or "Gesamtbetrag" field. Do not include currency symbols.
+- "date": the transaction date in YYYY-MM-DD format. German receipts use DD.MM.YYYY — convert it.
+- "category": use "transport" only if the receipt is clearly for transportation (taxi, rideshare, Uber, fuel/Kraftstoff, train/Bahn, bus, parking/Parkhaus, toll). Otherwise use "general".
+- "notes": a short note about what was purchased, or null if nothing useful to add.
+- "confidence": a score from 0.0 to 1.0 for each field indicating how certain you are.
+- If a field cannot be determined, use null for the value and 0.0 for its confidence score.
+
+Output ONLY the JSON object. Do not wrap it in markdown or add any other text.`
 
 let _client: OpenAI | undefined
 
