@@ -10,9 +10,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar className="hidden md:flex" />
+      <Sidebar className="hidden md:flex" userId={user.id} />
       <main className="flex-1 overflow-auto flex flex-col">
-        <MobileNav className="md:hidden" />
+        <MobileNav className="md:hidden" userId={user.id} />
         <div className="flex-1 p-4 md:p-8 pb-16 md:pb-8">{children}</div>
       </main>
     </div>
