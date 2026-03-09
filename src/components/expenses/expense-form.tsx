@@ -12,9 +12,10 @@ interface Props {
   userId: string
   projectId?: string
   onSuccess: () => void
+  projects?: Array<{ id: string; name: string }>
 }
 
-export default function ExpenseForm({ userId, projectId, onSuccess }: Props) {
+export default function ExpenseForm({ userId, projectId, onSuccess, projects }: Props) {
   const [vendor, setVendor] = useState('')
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -24,6 +25,7 @@ export default function ExpenseForm({ userId, projectId, onSuccess }: Props) {
   const [receiptPath, setReceiptPath] = useState<string | null>(null)
   const [lowConfidence, setLowConfidence] = useState<string[]>([])
   const [ocrConfidence, setOcrConfidence] = useState<Record<string, number>>({})
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(projectId ?? null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -51,7 +53,7 @@ export default function ExpenseForm({ userId, projectId, onSuccess }: Props) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        project_id: projectId || null,
+        project_id: selectedProjectId,
         vendor: vendor || null,
         amount: parseFloat(amount),
         date,
@@ -74,6 +76,27 @@ export default function ExpenseForm({ userId, projectId, onSuccess }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {projects && (
+        <div className="space-y-1">
+          <Label>Project</Label>
+          <Select
+            value={selectedProjectId ?? ''}
+            onValueChange={v => setSelectedProjectId(v || null)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="No project — goes to Inbox" />
+            </SelectTrigger>
+            <SelectContent>
+              {projects.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {!selectedProjectId && (
+            <p className="text-xs text-gray-400">No project selected — expense will go to Inbox</p>
+          )}
+        </div>
+      )}
       <ReceiptUpload userId={userId} onResult={handleOcrResult} onError={setError} />
 
       {lowConfidence.length > 0 && (
