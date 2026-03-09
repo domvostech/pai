@@ -1,3 +1,5 @@
+create extension if not exists pgcrypto;
+
 -- Clients
 create table public.clients (
   id uuid primary key default gen_random_uuid(),
