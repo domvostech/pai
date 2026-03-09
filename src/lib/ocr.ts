@@ -65,7 +65,7 @@ export async function extractReceiptData(
 ): Promise<OcrResult> {
   const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
   const model = genai.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-1.5-flash',
     systemInstruction: OCR_SYSTEM_PROMPT,
   })
 
