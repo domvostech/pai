@@ -1,5 +1,3 @@
-create extension if not exists pgcrypto;
-
 -- Clients
 create table public.clients (
   id uuid primary key default gen_random_uuid(),
@@ -42,7 +40,7 @@ create table public.expenses (
 create table public.inbound_tokens (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  token text not null unique default encode(gen_random_bytes(12), 'hex'),
+  token text not null unique,
   created_at timestamptz not null default now()
 );
 

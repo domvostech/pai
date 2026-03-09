@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
@@ -14,9 +15,10 @@ export async function GET() {
     .single()
 
   if (!tokenRow) {
+    const token = crypto.randomBytes(12).toString('hex')
     const { data: newRow } = await supabase
       .from('inbound_tokens')
-      .insert({ user_id: user.id })
+      .insert({ user_id: user.id, token })
       .select('token')
       .single()
     tokenRow = newRow
