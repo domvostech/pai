@@ -8,8 +8,9 @@ import { getReceiptStoragePath } from '@/lib/receipt-compression'
 const INBOUND_DOMAIN = process.env.INBOUND_EMAIL_DOMAIN ?? 'mail.yourapp.com'
 
 export async function POST(request: Request) {
-  // Verify webhook secret
-  const secret = request.headers.get('x-webhook-secret')
+  // Verify webhook secret via query parameter (Postmark doesn't support custom headers)
+  const { searchParams } = new URL(request.url)
+  const secret = searchParams.get('secret')
   const expectedSecret = process.env.POSTMARK_WEBHOOK_SECRET ?? ''
   const secretBuffer = Buffer.from(secret ?? '')
   const expectedBuffer = Buffer.from(expectedSecret)
