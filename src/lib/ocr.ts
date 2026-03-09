@@ -89,7 +89,7 @@ export async function extractReceiptData(
   }
 
   const response = await getClient().chat.completions.create({
-    model: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+    model: 'google/gemini-2.5-flash-lite',
     max_tokens: 512,
     messages: [
       { role: 'system', content: OCR_SYSTEM_PROMPT },
