@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const CONFIDENCE_THRESHOLD = 0.7
 
@@ -63,33 +63,24 @@ Return ONLY the JSON object, no other text.`
 export async function extractReceiptData(
   input: { imageBase64: string; mimeType: string } | { text: string }
 ): Promise<OcrResult> {
-  const client = new Anthropic()
-
-  let content: Anthropic.MessageParam['content']
-
-  if ('imageBase64' in input) {
-    content = [
-      {
-        type: 'image',
-        source: {
-          type: 'base64',
-          media_type: input.mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
-          data: input.imageBase64,
-        },
-      },
-      { type: 'text', text: 'Extract receipt information from this image.' },
-    ]
-  } else {
-    content = [{ type: 'text', text: `Receipt text:\n${input.text}` }]
-  }
-
-  const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 512,
-    system: OCR_SYSTEM_PROMPT,
-    messages: [{ role: 'user', content }],
+  const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+  const model = genai.getGenerativeModel({
+    model: 'gemini-2.0-flash',
+    systemInstruction: OCR_SYSTEM_PROMPT,
   })
 
-  const text = response.content[0].type === 'text' ? response.content[0].text : ''
+  let parts: Parameters<typeof model.generateContent>[0]
+
+  if ('imageBase64' in input) {
+    parts = [
+      { inlineData: { mimeType: input.mimeType, data: input.imageBase64 } },
+      'Extract receipt information from this image.',
+    ]
+  } else {
+    parts = [`Receipt text:\n${input.text}`]
+  }
+
+  const result = await model.generateContent(parts)
+  const text = result.response.text()
   return parseOcrResponse(text)
 }
