@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 
 const CONFIDENCE_THRESHOLD = 0.7
 
@@ -60,35 +60,40 @@ Category is "transport" only if the receipt is clearly for transportation (taxi,
 If a field cannot be determined, use null for the value and 0.0 for its confidence score.
 Return ONLY the JSON object, no other text.`
 
+function getClient(): OpenAI {
+  return new OpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: process.env.OPENROUTER_API_KEY ?? '',
+  })
+}
+
 export async function extractReceiptData(
   input: { imageBase64: string; mimeType: string } | { text: string }
 ): Promise<OcrResult> {
-  const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-  const model = genai.getGenerativeModel({
-    model: 'gemini-1.5-flash',
-    systemInstruction: OCR_SYSTEM_PROMPT,
-  })
-
-  let parts: Parameters<typeof model.generateContent>[0]
+  let userContent: OpenAI.ChatCompletionUserMessageParam['content']
 
   if ('imageBase64' in input) {
-    parts = [
-      { inlineData: { mimeType: input.mimeType, data: input.imageBase64 } },
-      'Extract receipt information from this image.',
+    userContent = [
+      {
+        type: 'image_url',
+        image_url: { url: `data:${input.mimeType};base64,${input.imageBase64}` },
+      },
+      { type: 'text', text: 'Extract receipt information from this image.' },
     ]
   } else {
-    parts = [`Receipt text:\n${input.text}`]
+    userContent = `Receipt text:\n${input.text}`
   }
 
-  const result = await model.generateContent(parts)
-  let text: string
-  try {
-    text = result.response.text()
-  } catch (err) {
-    throw new Error(`Gemini OCR blocked or failed: ${err instanceof Error ? err.message : String(err)}`)
-  }
-  if (!text) {
-    throw new Error('Gemini OCR returned empty response')
-  }
+  const response = await getClient().chat.completions.create({
+    model: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+    max_tokens: 512,
+    messages: [
+      { role: 'system', content: OCR_SYSTEM_PROMPT },
+      { role: 'user', content: userContent },
+    ],
+  })
+
+  const text = response.choices[0]?.message?.content
+  if (!text) throw new Error('OpenRouter OCR returned empty response')
   return parseOcrResponse(text)
 }
