@@ -60,15 +60,15 @@ Category is "transport" only if the receipt is clearly for transportation (taxi,
 If a field cannot be determined, use null for the value and 0.0 for its confidence score.
 Return ONLY the JSON object, no other text.`
 
+let _client: OpenAI | undefined
+
 function getClient(): OpenAI {
-  return new OpenAI({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: (() => {
-      const key = process.env.OPENROUTER_API_KEY
-      if (!key) throw new Error('OPENROUTER_API_KEY environment variable is not set')
-      return key
-    })(),
-  })
+  if (!_client) {
+    const key = process.env.OPENROUTER_API_KEY
+    if (!key) throw new Error('OPENROUTER_API_KEY environment variable is not set')
+    _client = new OpenAI({ baseURL: 'https://openrouter.ai/api/v1', apiKey: key })
+  }
+  return _client
 }
 
 export async function extractReceiptData(
