@@ -1,9 +1,6 @@
--- Enable UUID extension
-create extension if not exists "uuid-ossp";
-
 -- Clients
 create table public.clients (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
   email text,
@@ -12,7 +9,7 @@ create table public.clients (
 
 -- Projects
 create table public.projects (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   client_id uuid references public.clients(id) on delete set null,
   name text not null,
@@ -25,7 +22,7 @@ create type expense_category as enum ('general', 'transport');
 
 -- Expenses
 create table public.expenses (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   project_id uuid references public.projects(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
   vendor text,
@@ -41,7 +38,7 @@ create table public.expenses (
 
 -- Inbound email tokens
 create table public.inbound_tokens (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   token text not null unique default encode(gen_random_bytes(12), 'hex'),
   created_at timestamptz not null default now()
