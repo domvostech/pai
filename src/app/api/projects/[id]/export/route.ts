@@ -41,12 +41,12 @@ export async function GET(
 
   // CSV export
   if (format === 'csv') {
-    const header = 'Date,Vendor,Amount,Category,Return,Notes\n'
+    const header = 'Date,Vendor,Amount Net,Category,Return,Notes\n'
     const rows = expenseList
       .map(e => {
         const vendor = (e.vendor ?? '').replace(/"/g, '""')
         const notes = (e.notes ?? '').replace(/"/g, '""')
-        return `${e.date},"${vendor}",${e.amount},${e.category},${e.is_return},"${notes}"`
+        return `${e.date},"${vendor}",${e.amount_net},${e.category},${e.is_return},"${notes}"`
       })
       .join('\n')
 
