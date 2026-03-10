@@ -17,7 +17,11 @@ interface Props {
 
 export default function ExpenseForm({ userId, projectId, onSuccess, projects }: Props) {
   const [vendor, setVendor] = useState('')
-  const [amount, setAmount] = useState('')
+  const [amountNet, setAmountNet] = useState('')
+  const [amountGross, setAmountGross] = useState('')
+  const [amount19, setAmount19] = useState('')
+  const [amount7, setAmount7] = useState('')
+  const [amount0, setAmount0] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [category, setCategory] = useState<'general' | 'transport'>('general')
   const [notes, setNotes] = useState('')
@@ -34,7 +38,11 @@ export default function ExpenseForm({ userId, projectId, onSuccess, projects }: 
     setLowConfidence(ocrResult.lowConfidenceFields)
     setOcrConfidence(ocrResult.confidence)
     if (ocrResult.vendor) setVendor(ocrResult.vendor)
-    if (ocrResult.amount !== null) setAmount(String(ocrResult.amount))
+    if (ocrResult.amount_net !== null) setAmountNet(String(ocrResult.amount_net))
+    if (ocrResult.amount_gross !== null) setAmountGross(String(ocrResult.amount_gross))
+    if (ocrResult.amount_19 !== null) setAmount19(String(ocrResult.amount_19))
+    if (ocrResult.amount_7 !== null) setAmount7(String(ocrResult.amount_7))
+    if (ocrResult.amount_0 !== null) setAmount0(String(ocrResult.amount_0))
     if (ocrResult.date) setDate(ocrResult.date)
     if (ocrResult.category) setCategory(ocrResult.category)
     if (ocrResult.notes) setNotes(ocrResult.notes)
@@ -55,7 +63,11 @@ export default function ExpenseForm({ userId, projectId, onSuccess, projects }: 
       body: JSON.stringify({
         project_id: selectedProjectId,
         vendor: vendor || null,
-        amount: parseFloat(amount),
+        amount_net: parseFloat(amountNet),
+        amount_gross: amountGross ? parseFloat(amountGross) : null,
+        amount_19: amount19 ? parseFloat(amount19) : null,
+        amount_7: amount7 ? parseFloat(amount7) : null,
+        amount_0: amount0 ? parseFloat(amount0) : null,
         date,
         category,
         notes: notes || null,
@@ -118,15 +130,15 @@ export default function ExpenseForm({ userId, projectId, onSuccess, projects }: 
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (€) *</Label>
+          <Label htmlFor="amount_net">Amount net (€) *</Label>
           <Input
-            id="amount"
+            id="amount_net"
             type="number"
             step="0.01"
             min="0.01"
-            className={fieldClass('amount')}
-            value={amount}
-            onChange={e => setAmount(e.target.value)}
+            className={fieldClass('amount_net')}
+            value={amountNet}
+            onChange={e => setAmountNet(e.target.value)}
             required
           />
         </div>
@@ -140,6 +152,37 @@ export default function ExpenseForm({ userId, projectId, onSuccess, projects }: 
             onChange={e => setDate(e.target.value)}
             required
           />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="amount_gross">Gross total (€)</Label>
+        <Input
+          id="amount_gross"
+          type="number"
+          step="0.01"
+          min="0"
+          value={amountGross}
+          onChange={e => setAmountGross(e.target.value)}
+          placeholder="Optional"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs text-gray-500">VAT breakdown — gross amounts (optional)</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="space-y-1">
+            <Label htmlFor="amount_19" className="text-xs">19%</Label>
+            <Input id="amount_19" type="number" step="0.01" min="0" value={amount19} onChange={e => setAmount19(e.target.value)} placeholder="0.00" />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="amount_7" className="text-xs">7%</Label>
+            <Input id="amount_7" type="number" step="0.01" min="0" value={amount7} onChange={e => setAmount7(e.target.value)} placeholder="0.00" />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="amount_0" className="text-xs">0%</Label>
+            <Input id="amount_0" type="number" step="0.01" min="0" value={amount0} onChange={e => setAmount0(e.target.value)} placeholder="0.00" />
+          </div>
         </div>
       </div>
 
