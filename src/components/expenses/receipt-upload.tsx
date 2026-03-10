@@ -4,8 +4,7 @@ import imageCompression from 'browser-image-compression'
 import { createClient } from '@/lib/supabase/client'
 import { IMAGE_COMPRESSION_OPTIONS, shouldCompressAsImage, getReceiptStoragePath } from '@/lib/receipt-compression'
 import type { OcrResult } from '@/lib/ocr'
-import { Button } from '@/components/ui/button'
-import { Upload, Loader2 } from 'lucide-react'
+import { Camera, Paperclip, Loader2 } from 'lucide-react'
 
 interface Props {
   userId: string
@@ -14,31 +13,29 @@ interface Props {
 }
 
 export default function ReceiptUpload({ userId, onResult, onError }: Props) {
-  const [loading, setLoading] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [loading, setLoading] = useState<'camera' | 'file' | null>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
-  async function handleFile(file: File) {
-    setLoading(true)
+  async function handleFile(file: File, source: 'camera' | 'file') {
+    setLoading(source)
     try {
       const expenseId = crypto.randomUUID()
       const isPdf = file.type === 'application/pdf'
       const ext = isPdf ? 'pdf' : 'jpeg'
       const storagePath = getReceiptStoragePath(userId, expenseId, ext)
 
-      // Compress images client-side; PDFs go as-is
       let uploadFile: File = file
       if (shouldCompressAsImage(file.type)) {
         uploadFile = await imageCompression(file, IMAGE_COMPRESSION_OPTIONS)
       }
 
-      // Upload to Supabase Storage
       const supabase = createClient()
       const { error: uploadError } = await supabase.storage
         .from('receipts')
         .upload(storagePath, uploadFile, { contentType: isPdf ? 'application/pdf' : 'image/jpeg' })
       if (uploadError) throw new Error(uploadError.message)
 
-      // Run OCR
       const formData = new FormData()
       formData.append('file', uploadFile)
       const ocrRes = await fetch('/api/ocr', { method: 'POST', body: formData })
@@ -49,32 +46,64 @@ export default function ReceiptUpload({ userId, onResult, onError }: Props) {
     } catch (e: unknown) {
       onError(e instanceof Error ? e.message : 'Upload failed')
     } finally {
-      setLoading(false)
+      setLoading(null)
+      if (cameraRef.current) cameraRef.current.value = ''
+      if (fileRef.current) fileRef.current.value = ''
     }
   }
 
   return (
-    <div>
+    <div className="grid grid-cols-2 gap-3">
+      {/* Hidden inputs */}
       <input
-        ref={inputRef}
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={e => e.target.files?.[0] && handleFile(e.target.files[0], 'camera')}
+      />
+      <input
+        ref={fileRef}
         type="file"
         accept="image/*,application/pdf"
         className="hidden"
-        onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
+        onChange={e => e.target.files?.[0] && handleFile(e.target.files[0], 'file')}
       />
-      <Button
+
+      {/* Camera button */}
+      <button
         type="button"
-        variant="outline"
-        onClick={() => inputRef.current?.click()}
-        disabled={loading}
-        className="w-full"
+        onClick={() => cameraRef.current?.click()}
+        disabled={loading !== null}
+        className="flex flex-col items-center justify-center gap-2 h-24 rounded-xl bg-black text-white disabled:opacity-50 active:scale-95 transition-transform"
       >
-        {loading ? (
-          <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing receipt…</>
+        {loading === 'camera' ? (
+          <Loader2 className="h-7 w-7 animate-spin" />
         ) : (
-          <><Upload className="h-4 w-4 mr-2" />Upload receipt (photo or PDF)</>
+          <Camera className="h-7 w-7" />
         )}
-      </Button>
+        <span className="text-sm font-medium">
+          {loading === 'camera' ? 'Processing…' : 'Take Photo'}
+        </span>
+      </button>
+
+      {/* File button */}
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        disabled={loading !== null}
+        className="flex flex-col items-center justify-center gap-2 h-24 rounded-xl bg-black text-white disabled:opacity-50 active:scale-95 transition-transform"
+      >
+        {loading === 'file' ? (
+          <Loader2 className="h-7 w-7 animate-spin" />
+        ) : (
+          <Paperclip className="h-7 w-7" />
+        )}
+        <span className="text-sm font-medium">
+          {loading === 'file' ? 'Processing…' : 'Upload File'}
+        </span>
+      </button>
     </div>
   )
 }
