@@ -9,20 +9,22 @@ import QuickAddSheet from '@/components/expenses/quick-add-sheet'
 interface Props {
   className?: string
   userId: string
+  inboxCount: number
 }
 
-export default function MobileNav({ className, userId }: Props) {
+export default function MobileNav({ className, userId, inboxCount }: Props) {
   const pathname = usePathname()
   const [sheetOpen, setSheetOpen] = useState(false)
+
+  const leftTabs = [
+    { href: '/', label: 'Dashboard', icon: LayoutDashboard, badge: 0 },
+    { href: '/inbox', label: 'Inbox', icon: Inbox, badge: inboxCount },
+  ]
 
   return (
     <>
       <nav className={cn('flex items-end border-t bg-white fixed bottom-0 left-0 right-0 z-50', className)}>
-        {/* Left tabs */}
-        {[
-          { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-          { href: '/inbox', label: 'Inbox', icon: Inbox },
-        ].map(({ href, label, icon: Icon }) => (
+        {leftTabs.map(({ href, label, icon: Icon, badge }) => (
           <Link
             key={href}
             href={href}
@@ -31,7 +33,14 @@ export default function MobileNav({ className, userId }: Props) {
               pathname === href ? 'text-gray-900 font-medium' : 'text-gray-500'
             )}
           >
-            <Icon className="h-5 w-5" />
+            <div className="relative">
+              <Icon className="h-5 w-5" />
+              {badge > 0 && (
+                <span className="absolute -top-1 -right-2 min-w-[1rem] h-4 rounded-full bg-gray-800 text-white text-[10px] flex items-center justify-center px-0.5 leading-none">
+                  {badge}
+                </span>
+              )}
+            </div>
             {label}
           </Link>
         ))}

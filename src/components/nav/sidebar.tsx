@@ -16,9 +16,10 @@ const links = [
 interface Props {
   className?: string
   userId: string
+  inboxCount: number
 }
 
-export default function Sidebar({ className, userId }: Props) {
+export default function Sidebar({ className, userId, inboxCount }: Props) {
   const pathname = usePathname()
   const router = useRouter()
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -47,6 +48,11 @@ export default function Sidebar({ className, userId }: Props) {
             >
               <Icon className="h-4 w-4" />
               {label}
+              {href === '/inbox' && inboxCount > 0 && (
+                <span className="ml-auto text-xs bg-gray-200 text-gray-700 rounded-full px-1.5 py-0.5 leading-none">
+                  {inboxCount}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
