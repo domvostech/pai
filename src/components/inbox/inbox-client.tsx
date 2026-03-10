@@ -78,8 +78,8 @@ export default function InboxClient({ initialExpenses, projects, inboundAddress 
                   <p className="font-medium">{expense.vendor ?? '—'}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs">Amount</p>
-                  <p className="font-medium">€{Math.abs(expense.amount).toFixed(2)}</p>
+                  <p className="text-gray-500 text-xs">Amount (net)</p>
+                  <p className="font-medium">€{Math.abs(expense.amount_net).toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-gray-500 text-xs">Date</p>

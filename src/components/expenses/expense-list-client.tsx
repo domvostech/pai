@@ -106,7 +106,7 @@ function ExpenseTable({ expenses, onSelect }: { expenses: Expense[]; onSelect: (
               <p className="text-xs text-gray-500">{expense.date} · {expense.category}</p>
             </div>
             <p className={`text-sm font-medium ${expense.is_return ? 'text-green-600' : ''}`}>
-              {expense.is_return ? '+' : ''}€{Math.abs(expense.amount).toFixed(2)}
+              {expense.is_return ? '+' : ''}€{Math.abs(expense.amount_net).toFixed(2)}
               {expense.is_return && <span className="text-xs ml-1">(return)</span>}
             </p>
           </div>
@@ -131,12 +131,28 @@ function ExpenseDetail({ expense, onClose }: { expense: Expense; onClose: () => 
       <dl className="grid grid-cols-2 gap-3 text-sm">
         <div><dt className="text-gray-500">Vendor</dt><dd className="font-medium">{expense.vendor ?? '—'}</dd></div>
         <div>
-          <dt className="text-gray-500">Amount</dt>
+          <dt className="text-gray-500">Amount (net)</dt>
           <dd className="font-medium">
-            {expense.is_return ? '+' : ''}€{Math.abs(expense.amount).toFixed(2)}
+            {expense.is_return ? '+' : ''}€{Math.abs(expense.amount_net).toFixed(2)}
             {expense.is_return && <span className="text-xs ml-1 text-green-600">(return)</span>}
           </dd>
         </div>
+        {expense.amount_gross != null && (
+          <div>
+            <dt className="text-gray-500">Gross total</dt>
+            <dd className="font-medium">€{expense.amount_gross.toFixed(2)}</dd>
+          </div>
+        )}
+        {(expense.amount_19 != null || expense.amount_7 != null || expense.amount_0 != null) && (
+          <div className="col-span-2">
+            <dt className="text-gray-500 mb-1">VAT breakdown (gross)</dt>
+            <dd className="font-medium flex gap-4 text-sm">
+              {expense.amount_19 != null && <span>19%: €{expense.amount_19.toFixed(2)}</span>}
+              {expense.amount_7 != null && <span>7%: €{expense.amount_7.toFixed(2)}</span>}
+              {expense.amount_0 != null && <span>0%: €{expense.amount_0.toFixed(2)}</span>}
+            </dd>
+          </div>
+        )}
         <div><dt className="text-gray-500">Date</dt><dd className="font-medium">{expense.date}</dd></div>
         <div><dt className="text-gray-500">Category</dt><dd className="font-medium capitalize">{expense.category}</dd></div>
         {expense.notes && (
