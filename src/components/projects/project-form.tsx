@@ -20,6 +20,7 @@ export default function ProjectForm({ onSuccess }: Props) {
   const [name, setName] = useState('')
   const [budget, setBudget] = useState('')
   const [clientId, setClientId] = useState<string>('')
+  const [costCenter, setCostCenter] = useState('')
   const [clients, setClients] = useState<Client[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -47,6 +48,7 @@ export default function ProjectForm({ onSuccess }: Props) {
         name,
         total_budget: parseFloat(budget) || 0,
         client_id: clientId || null,
+        cost_center: costCenter.trim() || null,
       }),
     })
 
@@ -61,6 +63,7 @@ export default function ProjectForm({ onSuccess }: Props) {
     setName('')
     setBudget('')
     setClientId('')
+    setCostCenter('')
     setLoading(false)
     onSuccess(data)
   }
@@ -113,6 +116,15 @@ export default function ProjectForm({ onSuccess }: Props) {
                 value={budget}
                 onChange={e => setBudget(e.target.value)}
                 placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cost-center">Cost Centre</Label>
+              <Input
+                id="cost-center"
+                value={costCenter}
+                onChange={e => setCostCenter(e.target.value)}
+                placeholder="e.g. 597B"
               />
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}

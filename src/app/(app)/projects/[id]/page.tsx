@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import ExpenseListClient from '@/components/expenses/expense-list-client'
+import ProjectCostCenterField from '@/components/projects/project-cost-center-field'
 import type { Database } from '@/lib/supabase/types'
 
 type Expense = Database['public']['Tables']['expenses']['Row']
@@ -51,6 +52,7 @@ export default async function ProjectPage({ params }: PageProps) {
       <div>
         <h1 className="text-2xl font-bold">{p.name}</h1>
         {client && <p className="text-sm text-gray-500 mt-1">{client.name}</p>}
+        <ProjectCostCenterField projectId={id} initialValue={p.cost_center} />
       </div>
 
       {/* Budget summary */}
