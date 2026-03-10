@@ -33,11 +33,11 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { project_id, vendor, amount, date, category, notes, receipt_path, is_return, ocr_confidence } = body
+  const { project_id, vendor, amount_net, amount_gross, amount_19, amount_7, amount_0, date, category, notes, receipt_path, is_return, ocr_confidence } = body
 
-  const parsedAmount = Number(amount)
-  if (amount === undefined || amount === null || isNaN(parsedAmount) || parsedAmount <= 0) {
-    return NextResponse.json({ error: 'amount must be a positive number' }, { status: 400 })
+  const parsedAmountNet = Number(amount_net)
+  if (amount_net === undefined || amount_net === null || isNaN(parsedAmountNet) || parsedAmountNet <= 0) {
+    return NextResponse.json({ error: 'amount_net must be a positive number' }, { status: 400 })
   }
   if (!date) {
     return NextResponse.json({ error: 'date is required' }, { status: 400 })
@@ -52,7 +52,11 @@ export async function POST(request: Request) {
       user_id: user.id,
       project_id: project_id || null,
       vendor: vendor || null,
-      amount: parsedAmount,
+      amount_net: parsedAmountNet,
+      amount_gross: amount_gross != null ? Number(amount_gross) : null,
+      amount_19: amount_19 != null ? Number(amount_19) : null,
+      amount_7: amount_7 != null ? Number(amount_7) : null,
+      amount_0: amount_0 != null ? Number(amount_0) : null,
       date,
       category,
       notes: notes || null,

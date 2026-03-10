@@ -12,7 +12,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const allowed: Record<string, unknown> = {}
   if (body.project_id !== undefined) allowed.project_id = body.project_id
   if (body.vendor !== undefined) allowed.vendor = body.vendor
-  if (body.amount !== undefined) allowed.amount = Number(body.amount)
+  if (body.amount_net !== undefined) allowed.amount_net = Number(body.amount_net)
+  if (body.amount_gross !== undefined) allowed.amount_gross = body.amount_gross != null ? Number(body.amount_gross) : null
+  if (body.amount_19 !== undefined) allowed.amount_19 = body.amount_19 != null ? Number(body.amount_19) : null
+  if (body.amount_7 !== undefined) allowed.amount_7 = body.amount_7 != null ? Number(body.amount_7) : null
+  if (body.amount_0 !== undefined) allowed.amount_0 = body.amount_0 != null ? Number(body.amount_0) : null
   if (body.date !== undefined) allowed.date = body.date
   if (body.category !== undefined) allowed.category = body.category
   if (body.notes !== undefined) allowed.notes = body.notes
