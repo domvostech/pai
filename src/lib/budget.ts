@@ -1,6 +1,6 @@
 import type { Database } from './supabase/types'
 
-type Expense = Pick<Database['public']['Tables']['expenses']['Row'], 'amount' | 'category' | 'is_return'>
+type Expense = Pick<Database['public']['Tables']['expenses']['Row'], 'amount_net' | 'category' | 'is_return'>
 
 export interface BudgetSummary {
   totalBudget: number
@@ -16,7 +16,7 @@ export function calculateBudgetSummary(totalBudget: number, expenses: Expense[])
   let spentTransport = 0
 
   for (const expense of expenses) {
-    const amount = expense.is_return ? -Math.abs(expense.amount) : Math.abs(expense.amount)
+    const amount = expense.is_return ? -Math.abs(expense.amount_net) : Math.abs(expense.amount_net)
     if (expense.category === 'general') spentGeneral += amount
     else if (expense.category === 'transport') spentTransport += amount
   }

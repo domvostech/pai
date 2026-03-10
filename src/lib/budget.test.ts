@@ -4,8 +4,8 @@ import { calculateBudgetSummary } from './budget'
 describe('calculateBudgetSummary', () => {
   it('calculates spent by category', () => {
     const expenses = [
-      { amount: 100, category: 'general', is_return: false },
-      { amount: 50, category: 'transport', is_return: false },
+      { amount_net: 100, category: 'general', is_return: false },
+      { amount_net: 50, category: 'transport', is_return: false },
     ]
     const result = calculateBudgetSummary(1000, expenses as any)
     expect(result.spentGeneral).toBe(100)
@@ -14,8 +14,8 @@ describe('calculateBudgetSummary', () => {
 
   it('subtracts returns from totals', () => {
     const expenses = [
-      { amount: 100, category: 'general', is_return: false },
-      { amount: 30, category: 'general', is_return: true },
+      { amount_net: 100, category: 'general', is_return: false },
+      { amount_net: 30, category: 'general', is_return: true },
     ]
     const result = calculateBudgetSummary(1000, expenses as any)
     expect(result.spentGeneral).toBe(70)
@@ -24,8 +24,8 @@ describe('calculateBudgetSummary', () => {
 
   it('calculates remaining budget', () => {
     const expenses = [
-      { amount: 200, category: 'general', is_return: false },
-      { amount: 100, category: 'transport', is_return: false },
+      { amount_net: 200, category: 'general', is_return: false },
+      { amount_net: 100, category: 'transport', is_return: false },
     ]
     const result = calculateBudgetSummary(1000, expenses as any)
     expect(result.remaining).toBe(700)
@@ -34,7 +34,7 @@ describe('calculateBudgetSummary', () => {
 
   it('flags overbudget correctly', () => {
     const expenses = [
-      { amount: 1200, category: 'general', is_return: false },
+      { amount_net: 1200, category: 'general', is_return: false },
     ]
     const result = calculateBudgetSummary(1000, expenses as any)
     expect(result.isOverBudget).toBe(true)
