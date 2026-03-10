@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const { count: inboxCount } = await supabase
     .from('expenses')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('user_id', user.id)
     .is('project_id', null)
 
