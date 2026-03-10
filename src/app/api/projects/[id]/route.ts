@@ -30,6 +30,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (body.name !== undefined) allowedFields.name = body.name
   if (body.total_budget !== undefined) allowedFields.total_budget = body.total_budget
   if (body.client_id !== undefined) allowedFields.client_id = body.client_id
+  if (body.cost_center !== undefined) allowedFields.cost_center = body.cost_center?.trim() || null
 
   if (Object.keys(allowedFields).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })

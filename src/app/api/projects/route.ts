@@ -8,7 +8,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('projects')
-    .select('*, client:clients(id, name), expenses(amount, is_return, category)')
+    .select('*, client:clients(id, name), expenses(amount_net, is_return, category)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { name, total_budget, client_id } = await request.json()
+  const { name, total_budget, client_id, cost_center } = await request.json()
   if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
 
   const { data, error } = await supabase
@@ -31,6 +31,7 @@ export async function POST(request: Request) {
       name: name.trim(),
       total_budget: total_budget || 0,
       client_id: client_id || null,
+      cost_center: cost_center?.trim() || null,
     })
     .select()
     .single()
