@@ -17,9 +17,10 @@ const ReceiptViewerLazy = dynamic(() => import('@/components/expenses/receipt-vi
 interface Props {
   initialExpenses: Expense[]
   projects: Project[]
+  inboundAddress: string | null
 }
 
-export default function InboxClient({ initialExpenses, projects }: Props) {
+export default function InboxClient({ initialExpenses, projects, inboundAddress }: Props) {
   const router = useRouter()
   const [expenses, setExpenses] = useState(initialExpenses)
   const [assigning, setAssigning] = useState<Record<string, boolean>>({})
@@ -47,9 +48,19 @@ export default function InboxClient({ initialExpenses, projects }: Props) {
 
   if (expenses.length === 0) {
     return (
-      <p className="text-sm text-gray-500">
-        Your inbox is empty. Forward receipts to your inbound email address to get started.
-      </p>
+      <div className="space-y-3">
+        <p className="text-sm text-gray-500">
+          Your inbox is empty. Forward receipts to your inbound email address to get started.
+        </p>
+        {inboundAddress && (
+          <div>
+            <p className="text-xs text-gray-400 mb-1">Forward receipts to:</p>
+            <p className="text-sm font-mono bg-gray-100 rounded px-3 py-2 break-all">
+              {inboundAddress}
+            </p>
+          </div>
+        )}
+      </div>
     )
   }
 

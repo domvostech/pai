@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import InboxClient from '@/components/inbox/inbox-client'
@@ -24,6 +25,25 @@ export default async function InboxPage() {
     .eq('user_id', user.id)
     .order('name')
 
+  let { data: tokenRow } = await supabase
+    .from('inbound_tokens')
+    .select('token')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!tokenRow) {
+    const token = crypto.randomBytes(12).toString('hex')
+    const { data: newRow } = await supabase
+      .from('inbound_tokens')
+      .insert({ user_id: user.id, token })
+      .select('token')
+      .single()
+    tokenRow = newRow
+  }
+
+  const domain = process.env.INBOUND_EMAIL_DOMAIN ?? 'mail.yourapp.com'
+  const inboundAddress = tokenRow ? `${tokenRow.token}@${domain}` : null
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-2">Inbox</h1>
@@ -33,6 +53,7 @@ export default async function InboxPage() {
       <InboxClient
         initialExpenses={(expenses ?? []) as Expense[]}
         projects={projects ?? []}
+        inboundAddress={inboundAddress}
       />
     </div>
   )
