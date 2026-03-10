@@ -24,7 +24,7 @@ interface ReceiptBuffer {
 }
 
 interface GeneratePdfOptions {
-  project: { name: string; total_budget: number }
+  project: { name: string; total_budget: number; cost_center?: string | null }
   client: { name: string } | null
   expenses: Expense[]
   receiptBuffers: ReceiptBuffer[]
@@ -87,7 +87,12 @@ export async function generateExpenseReportPdf({
     y -= 14
   }
   drawText(`Generated: ${generatedDate}`, margin, y, { size: 9, color: [0.5, 0.5, 0.5] })
-  y -= 24
+  y -= 14
+  if (project.cost_center) {
+    drawText(`Cost Centre: ${project.cost_center}`, margin, y, { size: 9, color: [0.5, 0.5, 0.5] })
+    y -= 14
+  }
+  y -= 10
 
   // Divider
   page.drawLine({
@@ -156,7 +161,7 @@ export async function generateExpenseReportPdf({
     drawText('Date', margin, y, { size: 8, bold: true, color: [0.4, 0.4, 0.4] })
     drawText('Vendor', margin + 65, y, { size: 8, bold: true, color: [0.4, 0.4, 0.4] })
     drawText('Notes', margin + 230, y, { size: 8, bold: true, color: [0.4, 0.4, 0.4] })
-    drawText('Amount', pageWidth - margin - 55, y, { size: 8, bold: true, color: [0.4, 0.4, 0.4] })
+    drawText('Net', pageWidth - margin - 55, y, { size: 8, bold: true, color: [0.4, 0.4, 0.4] })
     y -= 10
 
     page.drawLine({
@@ -170,8 +175,8 @@ export async function generateExpenseReportPdf({
     for (const row of rows) {
       checkPageBreak(14)
       const amountStr = row.is_return
-        ? `+${formatCurrency(Math.abs(row.amount))}`
-        : formatCurrency(row.amount)
+        ? `+${formatCurrency(Math.abs(row.amount_net))}`
+        : formatCurrency(row.amount_net)
       const amountColor: [number, number, number] = row.is_return ? [0, 0.5, 0] : [0, 0, 0]
 
       drawText(row.date, margin, y, { size: 8 })
@@ -179,11 +184,22 @@ export async function generateExpenseReportPdf({
       drawText((row.notes ?? '').substring(0, 22), margin + 230, y, { size: 8 })
       drawText(amountStr, pageWidth - margin - 55, y, { size: 8, color: amountColor })
       y -= 13
+
+      // VAT detail line if gross data is present
+      if (row.amount_gross != null) {
+        checkPageBreak(11)
+        const parts: string[] = [`Gross: €${row.amount_gross.toFixed(2)}`]
+        if (row.amount_19 != null) parts.push(`19%: €${row.amount_19.toFixed(2)}`)
+        if (row.amount_7 != null) parts.push(`7%: €${row.amount_7.toFixed(2)}`)
+        if (row.amount_0 != null) parts.push(`0%: €${row.amount_0.toFixed(2)}`)
+        drawText(parts.join('  '), margin + 65, y, { size: 7, color: [0.5, 0.5, 0.5] })
+        y -= 10
+      }
     }
 
     // Section total
     const sectionTotal = rows.reduce(
-      (sum, r) => sum + (r.is_return ? -Math.abs(r.amount) : Math.abs(r.amount)),
+      (sum, r) => sum + (r.is_return ? -Math.abs(r.amount_net) : Math.abs(r.amount_net)),
       0
     )
     page.drawLine({
