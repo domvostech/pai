@@ -1,9 +1,11 @@
 'use client'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Inbox, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Inbox, Settings, LogOut, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import QuickAddSheet from '@/components/expenses/quick-add-sheet'
 
 const links = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -11,9 +13,15 @@ const links = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
-export default function Sidebar({ className }: { className?: string }) {
+interface Props {
+  className?: string
+  userId: string
+}
+
+export default function Sidebar({ className, userId }: Props) {
   const pathname = usePathname()
   const router = useRouter()
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   async function signOut() {
     const supabase = createClient()
@@ -22,29 +30,47 @@ export default function Sidebar({ className }: { className?: string }) {
   }
 
   return (
-    <aside className={cn('w-56 flex flex-col border-r bg-white px-3 py-6', className)}>
-      <div className="mb-8 px-3 text-xl font-bold tracking-tight">PAI</div>
-      <nav className="flex-1 space-y-1">
-        {links.map(({ href, label, icon: Icon }) => (
-          <Link key={href} href={href}
-            className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-              pathname === href
-                ? 'bg-gray-100 text-gray-900'
-                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-            )}>
-            <Icon className="h-4 w-4" />
-            {label}
-          </Link>
-        ))}
-      </nav>
-      <button
-        onClick={signOut}
-        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-      >
-        <LogOut className="h-4 w-4" />
-        Sign out
-      </button>
-    </aside>
+    <>
+      <aside className={cn('w-56 flex flex-col border-r bg-white px-3 py-6', className)}>
+        <div className="mb-8 px-3 text-xl font-bold tracking-tight">PAI</div>
+        <nav className="flex-1 space-y-1">
+          {links.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                pathname === href
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <button
+          onClick={() => setSheetOpen(true)}
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 transition-colors mb-2"
+        >
+          <Plus className="h-4 w-4" />
+          Add Expense
+        </button>
+        <button
+          onClick={signOut}
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </button>
+      </aside>
+
+      <QuickAddSheet
+        userId={userId}
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+      />
+    </>
   )
 }
