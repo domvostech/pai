@@ -39,12 +39,16 @@ export default function ReceiptUpload({ userId, onResult, onError }: Props) {
       const formData = new FormData()
       formData.append('file', uploadFile)
       const ocrRes = await fetch('/api/ocr', { method: 'POST', body: formData })
-      if (!ocrRes.ok) throw new Error('OCR failed')
+      if (!ocrRes.ok) {
+        const body = await ocrRes.json().catch(() => null)
+        throw new Error(body?.error ?? `OCR failed (${ocrRes.status})`)
+      }
       const ocrResult: OcrResult = await ocrRes.json()
 
       onResult({ storagePath, ocrResult })
     } catch (e: unknown) {
-      onError(e instanceof Error ? e.message : 'Upload failed')
+      const msg = e instanceof Error ? e.message : 'Upload failed'
+      onError(msg === 'Failed to fetch' ? 'Network error — check your connection and try again' : msg)
     } finally {
       setLoading(null)
       if (cameraRef.current) cameraRef.current.value = ''
