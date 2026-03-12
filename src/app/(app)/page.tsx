@@ -11,7 +11,7 @@ type Project = Database['public']['Tables']['projects']['Row']
 
 interface ProjectWithRelations extends Project {
   client: { name: string } | null
-  expenses: Pick<Expense, 'amount' | 'is_return' | 'category'>[]
+  expenses: Pick<Expense, 'amount_net' | 'is_return' | 'category'>[]
 }
 
 export default async function DashboardPage() {
